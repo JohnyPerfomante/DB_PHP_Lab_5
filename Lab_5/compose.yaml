@@ -1,0 +1,32 @@
+name: fleet-stock-lab5
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    environment:
+      MYSQL_DATABASE: fleet_stock
+      MYSQL_USER: fleet
+      MYSQL_PASSWORD: fleet_local_2026
+      MYSQL_ROOT_PASSWORD: root_local_2026
+    volumes:
+      - stock_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:8085:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: fleet_stock
+      DB_USER: fleet
+      DB_PASS: fleet_local_2026
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  stock_data:
